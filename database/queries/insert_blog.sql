@@ -1,4 +1,4 @@
 -- name: InsertBlog :one
-insert into blogs(content, user_id) values(?, ?)
+insert into blogs(content, title, category, tags, createdAt, updatedAt) values(?, ?, ?, ?, ?, ?)
 
 returning *;

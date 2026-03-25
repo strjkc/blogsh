@@ -4,18 +4,12 @@
 
 package queries
 
-import (
-	"database/sql"
-)
-
 type Blog struct {
-	ID      int64
-	Content sql.NullString
-	UserID  sql.NullInt64
-}
-
-type User struct {
-	ID       int64
-	Username sql.NullString
-	Password sql.NullString
+	ID        int64
+	Title     string
+	Content   string
+	Category  string
+	Tags      string
+	Createdat string
+	Updatedat string
 }

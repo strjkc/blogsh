@@ -7,23 +7,39 @@ package queries
 
 import (
 	"context"
-	"database/sql"
 )
 
 const updateBlog = `-- name: UpdateBlog :one
-update blogs set content = ? where id = ?
+update blogs set content = ?, title = ?, tags = ?, updatedat = ?  where id = ?
 
-returning id, content, user_id
+returning id, title, content, category, tags, createdat, updatedat
 `
 
 type UpdateBlogParams struct {
-	Content sql.NullString
-	ID      int64
+	Content   string
+	Title     string
+	Tags      string
+	Updatedat string
+	ID        int64
 }
 
 func (q *Queries) UpdateBlog(ctx context.Context, arg UpdateBlogParams) (Blog, error) {
-	row := q.db.QueryRowContext(ctx, updateBlog, arg.Content, arg.ID)
+	row := q.db.QueryRowContext(ctx, updateBlog,
+		arg.Content,
+		arg.Title,
+		arg.Tags,
+		arg.Updatedat,
+		arg.ID,
+	)
 	var i Blog
-	err := row.Scan(&i.ID, &i.Content, &i.UserID)
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Content,
+		&i.Category,
+		&i.Tags,
+		&i.Createdat,
+		&i.Updatedat,
+	)
 	return i, err
 }

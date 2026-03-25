@@ -10,12 +10,20 @@ import (
 )
 
 const getBlog = `-- name: GetBlog :one
-select id, content, user_id from blogs where id = ?
+select id, title, content, category, tags, createdat, updatedat from blogs where id = ?
 `
 
 func (q *Queries) GetBlog(ctx context.Context, id int64) (Blog, error) {
 	row := q.db.QueryRowContext(ctx, getBlog, id)
 	var i Blog
-	err := row.Scan(&i.ID, &i.Content, &i.UserID)
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Content,
+		&i.Category,
+		&i.Tags,
+		&i.Createdat,
+		&i.Updatedat,
+	)
 	return i, err
 }
