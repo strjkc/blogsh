@@ -10,18 +10,18 @@ import (
 )
 
 type Storage interface {
-	GetBlogsFromDb(queryVal string) ([]Blog, error)
-	GetBlogFromDb(id int) (Blog, error)
-	DeleteBlogFromDb(id int) error
-	UpdateBlogInDb(id int, blog Blog) (Blog, error)
-	InsertBlogIntoDb(b Blog) (Blog, error)
+	GetPostsFromDb(queryVal string) ([]Post, error)
+	GetPostFromDb(id int) (Post, error)
+	DeletePostFromDb(id int) error
+	UpdatePostInDb(id int, post Post) (Post, error)
+	InsertPostIntoDb(b Post) (Post, error)
 }
 
 type Handler struct {
 	dbcontroller Storage
 }
 
-type Blog struct {
+type Post struct {
 	ID        int       `json:"id"`
 	Title     string    `json:"title"`
 	Content   string    `json:"content"`
@@ -37,7 +37,7 @@ func NewHandler(controller Storage) Handler {
 	}
 }
 
-func validateBlog(b Blog) bool {
+func validatePost(b Post) bool {
 	if len(b.Title) < 1 || len(b.Content) < 1 || len(b.Category) < 1 || len(b.Tags) < 1 {
 		return false
 	}
@@ -56,61 +56,61 @@ func respondWithError(w http.ResponseWriter, statusCode int, message string) {
 	w.Write([]byte(fmt.Sprintf("<p>%s</p>", message)))
 }
 
-func (h *Handler) GetBlogs(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetPosts(w http.ResponseWriter, r *http.Request) {
 	queryVal := r.URL.Query().Get("term")
 
-	blogs, err := h.dbcontroller.GetBlogsFromDb(strings.ToLower(queryVal))
+	posts, err := h.dbcontroller.GetPostsFromDb(strings.ToLower(queryVal))
 	if err != nil {
 		respondWithError(w, 500, "Something went wrong")
 		fmt.Println(err)
 		return
 	}
 
-	blogsJSON, err := json.Marshal(blogs)
+	postsJSON, err := json.Marshal(posts)
 	if err != nil {
 		respondWithError(w, 500, "Something went wrong")
 		fmt.Println(err)
 		return
 	}
 
-	respond(w, 200, blogsJSON)
+	respond(w, 200, postsJSON)
 }
 
-func (h *Handler) GetBlog(w http.ResponseWriter, r *http.Request) {
-	blogID, err := strconv.Atoi(r.PathValue("blogID"))
+func (h *Handler) GetPost(w http.ResponseWriter, r *http.Request) {
+	postID, err := strconv.Atoi(r.PathValue("postID"))
 	if err != nil {
-		respondWithError(w, 400, "Invalid blog")
+		respondWithError(w, 400, "Invalid Post")
 		fmt.Println(err)
 		return
 	}
 
-	blog, err := h.dbcontroller.GetBlogFromDb(blogID)
+	post, err := h.dbcontroller.GetPostFromDb(postID)
 	if err != nil {
-		respondWithError(w, 404, "Blog Not Found")
+		respondWithError(w, 404, "Post Not Found")
 		fmt.Println(err)
 		return
 	}
 
-	blogJSON, err := json.Marshal(blog)
+	postJSON, err := json.Marshal(post)
 	if err != nil {
 		respondWithError(w, 500, "Something went wrong")
 		fmt.Println(err)
 		return
 	}
-	respond(w, 200, blogJSON)
+	respond(w, 200, postJSON)
 }
 
-func (h *Handler) DeleteBlog(w http.ResponseWriter, r *http.Request) {
-	blogID, err := strconv.Atoi(r.PathValue("blogID"))
+func (h *Handler) DeletePost(w http.ResponseWriter, r *http.Request) {
+	postID, err := strconv.Atoi(r.PathValue("postID"))
 	if err != nil {
-		respondWithError(w, 500, "Something went wrong")
+		respondWithError(w, 400, "Invalid Request")
 		fmt.Println(err)
 		return
 	}
 
-	err = h.dbcontroller.DeleteBlogFromDb(blogID)
+	err = h.dbcontroller.DeletePostFromDb(postID)
 	if err != nil {
-		respondWithError(w, 404, "Blog Not Found")
+		respondWithError(w, 404, "Post Not Found")
 		fmt.Println(err)
 		return
 	}
@@ -118,70 +118,70 @@ func (h *Handler) DeleteBlog(w http.ResponseWriter, r *http.Request) {
 	respond(w, http.StatusNoContent, []byte(""))
 }
 
-func (h *Handler) UpdateBlog(w http.ResponseWriter, r *http.Request) {
-	var b Blog
+func (h *Handler) UpdatePost(w http.ResponseWriter, r *http.Request) {
+	var b Post
 	if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
-		respondWithError(w, 500, "Something went wrong")
+		respondWithError(w, 400, "Invalid request")
 		fmt.Println(err)
 		return
 	}
-	ok := validateBlog(b)
+	ok := validatePost(b)
 	if !ok {
-		respondWithError(w, 400, "Blog Post Invalid")
+		respondWithError(w, 400, "Post Post Invalid")
 		return
 	}
 
-	blogID, err := strconv.Atoi(r.PathValue("blogID"))
+	postID, err := strconv.Atoi(r.PathValue("postID"))
+	if err != nil {
+		respondWithError(w, 400, "Invalid Request")
+		fmt.Println(err)
+		return
+	}
+
+	updatedPost, err := h.dbcontroller.UpdatePostInDb(postID, b)
 	if err != nil {
 		respondWithError(w, 500, "Something went wrong")
 		fmt.Println(err)
 		return
 	}
 
-	updatedBlog, err := h.dbcontroller.UpdateBlogInDb(blogID, b)
+	postJSON, err := json.Marshal(updatedPost)
 	if err != nil {
 		respondWithError(w, 500, "Something went wrong")
 		fmt.Println(err)
 		return
 	}
 
-	blogJSON, err := json.Marshal(updatedBlog)
-	if err != nil {
-		respondWithError(w, 500, "Something went wrong")
-		fmt.Println(err)
-		return
-	}
-
-	respond(w, http.StatusCreated, blogJSON)
+	respond(w, http.StatusOK, postJSON)
 }
 
-func (h *Handler) CreateBlog(w http.ResponseWriter, r *http.Request) {
-	var b Blog
+func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
+	var b Post
 	if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
-		respondWithError(w, 500, "Something went wrong")
+		respondWithError(w, 400, "Invalid request")
 		fmt.Println(err)
 		return
 	}
 
-	ok := validateBlog(b)
+	ok := validatePost(b)
 	if !ok {
-		respondWithError(w, 400, "Blog Post Invalid")
+		respondWithError(w, 400, "Post Post Invalid")
 		return
 	}
 
-	blog, err := h.dbcontroller.InsertBlogIntoDb(b)
+	post, err := h.dbcontroller.InsertPostIntoDb(b)
 	if err != nil {
 		respondWithError(w, 500, "Something went wrong")
 		fmt.Println(err)
 		return
 	}
 
-	blogJSON, err := json.Marshal(blog)
+	postJSON, err := json.Marshal(post)
 	if err != nil {
 		respondWithError(w, 500, "Something went wrong")
 		fmt.Println(err)
 		return
 	}
 
-	respond(w, http.StatusCreated, blogJSON)
+	respond(w, http.StatusCreated, postJSON)
 }

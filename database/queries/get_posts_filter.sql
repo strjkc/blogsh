@@ -1,5 +1,5 @@
--- name: GetBlogsFilter :many
-select * from blogs 
+-- name: GetPostsFilter :many
+select * from posts 
 WHERE title LIKE '%' || ? || '%'
    OR content LIKE '%' || ? || '%'
    OR category LIKE '%' || ? || '%';

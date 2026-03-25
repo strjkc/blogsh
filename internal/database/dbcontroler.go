@@ -20,71 +20,71 @@ func NewDBController(dbQueries *queries.Queries) DBController {
 	}
 }
 
-func dbBlogToBlog(dbBlog queries.Blog) (handlers.Blog, error) {
-	createdAt, err := time.Parse(time.RFC3339, dbBlog.Createdat)
+func dbPostToPost(dbPost queries.Post) (handlers.Post, error) {
+	createdAt, err := time.Parse(time.RFC3339, dbPost.Createdat)
 	if err != nil {
-		return handlers.Blog{}, err
+		return handlers.Post{}, err
 	}
-	updatedAt, err := time.Parse(time.RFC3339, dbBlog.Updatedat)
+	updatedAt, err := time.Parse(time.RFC3339, dbPost.Updatedat)
 	if err != nil {
-		return handlers.Blog{}, err
+		return handlers.Post{}, err
 	}
-	return handlers.Blog{
-		ID:        int(dbBlog.ID),
-		Content:   dbBlog.Content,
-		Title:     dbBlog.Title,
-		Tags:      strings.Split(dbBlog.Tags, ","),
-		Category:  dbBlog.Category,
+	return handlers.Post{
+		ID:        int(dbPost.ID),
+		Content:   dbPost.Content,
+		Title:     dbPost.Title,
+		Tags:      strings.Split(dbPost.Tags, ","),
+		Category:  dbPost.Category,
 		CreatedAt: createdAt,
 		UpdatedAt: updatedAt,
 	}, nil
 }
 
-func (ctrl *DBController) GetBlogsFromDb(queryVal string) ([]handlers.Blog, error) {
-	var blogs []handlers.Blog
-	var blogsDB []queries.Blog
+func (ctrl *DBController) GetPostsFromDb(queryVal string) ([]handlers.Post, error) {
+	var posts []handlers.Post
+	var postsDB []queries.Post
 	var err error
 	if len(queryVal) > 0 {
-		blogsDB, err = ctrl.db.GetBlogsFilter(context.Background(), queries.GetBlogsFilterParams{queryVal, queryVal, queryVal})
+		postsDB, err = ctrl.db.GetPostsFilter(context.Background(), queries.GetPostsFilterParams{queryVal, queryVal, queryVal})
 		if err != nil {
 			fmt.Println(err)
 			return nil, err
 		}
 	} else {
-		blogsDB, err = ctrl.db.GetBlogs(context.Background())
+		postsDB, err = ctrl.db.GetPosts(context.Background())
 		if err != nil {
 			fmt.Println(err)
 			return nil, err
 		}
 	}
-	for _, dbBlog := range blogsDB {
-		blog, err := dbBlogToBlog(dbBlog)
+	for _, dbPost := range postsDB {
+		post, err := dbPostToPost(dbPost)
 		if err != nil {
 			fmt.Println(err)
 			return nil, err
 		}
-		blogs = append(blogs, blog)
+		posts = append(posts, post)
 	}
 
-	return blogs, nil
+	return posts, nil
 }
 
-func (ctrl *DBController) GetBlogFromDb(id int) (handlers.Blog, error) {
-	blogDB, err := ctrl.db.GetBlog(context.Background(), int64(id))
+func (ctrl *DBController) GetPostFromDb(id int) (handlers.Post, error) {
+	postDB, err := ctrl.db.GetPost(context.Background(), int64(id))
 	if err != nil {
 		fmt.Println(err)
-		return handlers.Blog{}, err
+		return handlers.Post{}, err
 	}
 
-	updatedBlog, err := dbBlogToBlog(blogDB)
+	updatedPost, err := dbPostToPost(postDB)
 	if err != nil {
 		fmt.Println(err)
-		return handlers.Blog{}, err
+		return handlers.Post{}, err
 	}
-	return updatedBlog, nil
+	return updatedPost, nil
 }
 
-func (ctrl *DBController) DeleteBlogFromDb(id int) error {
+func (ctrl *DBController) DeletePostFromDb(id int) error {
 	_, err := ctrl.db.Delete(context.Background(), int64(id))
 	if err != nil {
 		fmt.Println(err)
@@ -93,45 +93,46 @@ func (ctrl *DBController) DeleteBlogFromDb(id int) error {
 	return nil
 }
 
-func (ctrl *DBController) UpdateBlogInDb(id int, blog handlers.Blog) (handlers.Blog, error) {
-	origDbBlog, err := ctrl.db.GetBlog(context.Background(), int64(id))
+func (ctrl *DBController) UpdatePostInDb(id int, post handlers.Post) (handlers.Post, error) {
+	origDbPost, err := ctrl.db.GetPost(context.Background(), int64(id))
 	if err != nil {
 		fmt.Println(err)
-		return handlers.Blog{}, err
+		return handlers.Post{}, err
 	}
 
-	updDbBlog, err := ctrl.db.UpdateBlog(context.Background(),
-		queries.UpdateBlogParams{
-			ID:        origDbBlog.ID,
-			Title:     blog.Title,
-			Content:   blog.Content,
-			Tags:      strings.Join(blog.Tags, ","),
+	updDbPost, err := ctrl.db.UpdatePost(context.Background(),
+		queries.UpdatePostParams{
+			ID:        origDbPost.ID,
+			Title:     post.Title,
+			Content:   post.Content,
+			Category:  post.Category,
+			Tags:      strings.Join(post.Tags, ","),
 			Updatedat: time.Now().Format(time.RFC3339),
 		})
 
-	updatedBlog, err := dbBlogToBlog(updDbBlog)
+	updatedPost, err := dbPostToPost(updDbPost)
 	if err != nil {
 		fmt.Println(err)
-		return handlers.Blog{}, err
+		return handlers.Post{}, err
 	}
-	return updatedBlog, nil
+	return updatedPost, nil
 }
 
-func (ctrl *DBController) InsertBlogIntoDb(b handlers.Blog) (handlers.Blog, error) {
+func (ctrl *DBController) InsertPostIntoDb(b handlers.Post) (handlers.Post, error) {
 	tagsStr := strings.Join(b.Tags, ",")
 	creatTime := time.Now().Format(time.RFC3339)
-	dbBlog, err := ctrl.db.InsertBlog(context.Background(), queries.InsertBlogParams{
+	dbPost, err := ctrl.db.InsertPost(context.Background(), queries.InsertPostParams{
 		Content: b.Content, Title: b.Title, Category: b.Category, Tags: tagsStr, Createdat: creatTime, Updatedat: creatTime,
 	})
 	if err != nil {
 		fmt.Println(err)
-		return handlers.Blog{}, err
+		return handlers.Post{}, err
 	}
 
-	createdBlog, err := dbBlogToBlog(dbBlog)
+	createdPost, err := dbPostToPost(dbPost)
 	if err != nil {
 		fmt.Println(err)
-		return handlers.Blog{}, err
+		return handlers.Post{}, err
 	}
-	return createdBlog, nil
+	return createdPost, nil
 }

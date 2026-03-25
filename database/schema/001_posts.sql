@@ -1,5 +1,5 @@
 -- +goose Up
-create table blogs(id integer primary key autoincrement,
+create table posts(id integer primary key autoincrement,
     title text not null unique, 
     content text not null,
     category text not null,
@@ -8,4 +8,4 @@ create table blogs(id integer primary key autoincrement,
     updatedAt text not null
 );
 -- +goose Down
-drop table blogs;
+drop table posts;

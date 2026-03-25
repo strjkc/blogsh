@@ -1,4 +1,4 @@
 -- name: Delete :one
-delete from blogs where id = ?
+delete from posts where id = ?
 
 returning *;

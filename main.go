@@ -39,11 +39,11 @@ func main() {
 	handler := handlers.NewHandler(&controller)
 	mux := http.NewServeMux()
 
-	mux.HandleFunc("POST /blogs", handler.CreateBlog)
-	mux.HandleFunc("PUT /blogs/{blogID}", handler.UpdateBlog)
-	mux.HandleFunc("GET /blogs/{blogID}", handler.GetBlog)
-	mux.HandleFunc("DELETE /blogs/{blogID}", handler.DeleteBlog)
-	mux.HandleFunc("GET /blogs/", handler.GetBlogs)
+	mux.HandleFunc("POST /posts", handler.CreatePost)
+	mux.HandleFunc("PUT /posts/{postID}", handler.UpdatePost)
+	mux.HandleFunc("GET /posts/{postID}", handler.GetPost)
+	mux.HandleFunc("DELETE /posts/{postID}", handler.DeletePost)
+	mux.HandleFunc("GET /posts/", handler.GetPosts)
 
 	server := http.Server{
 		Addr:    ":" + strconv.Itoa(port),
