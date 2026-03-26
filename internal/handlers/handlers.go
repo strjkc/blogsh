@@ -50,10 +50,10 @@ func respond(w http.ResponseWriter, statusCode int, content []byte) {
 	w.Write(content)
 }
 
-func respondWithError(w http.ResponseWriter, statusCode int, message string) {
-	w.Header().Add("Content-Type", "text/html")
+func respondWithError(w http.ResponseWriter, statusCode int, content string) {
+	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(statusCode)
-	w.Write([]byte(fmt.Sprintf("<p>%s</p>", message)))
+	w.Write([]byte(content))
 }
 
 func (h *Handler) GetPosts(w http.ResponseWriter, r *http.Request) {
