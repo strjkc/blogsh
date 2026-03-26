@@ -43,7 +43,7 @@ func main() {
 	mux.HandleFunc("PUT /posts/{postID}", handler.UpdatePost)
 	mux.HandleFunc("GET /posts/{postID}", handler.GetPost)
 	mux.HandleFunc("DELETE /posts/{postID}", handler.DeletePost)
-	mux.HandleFunc("GET /posts/", handler.GetPosts)
+	mux.HandleFunc("GET /posts", handler.GetPosts)
 
 	server := http.Server{
 		Addr:    ":" + strconv.Itoa(port),
